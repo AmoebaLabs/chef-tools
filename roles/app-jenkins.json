@@ -1,0 +1,37 @@
+{
+  "name": "app-jenkins",
+  "description": "Jenkins CI Server",
+  "run_list": [
+    "recipe[app::jenkins]",
+    "recipe[jenkins::server]"
+  ],
+  "default_attributes": {
+    "packages": [
+      "xvfb"
+    ],
+    "application": {
+      "gems": [
+        "ci_reporter",
+        "capistrano"
+      ]
+    }
+  },
+  "override_attributes": {
+    "application": {
+      "ci": "jenkins"
+    },
+    "jenkins": {
+      "server": {
+        "create_user": false,
+        "plugins": [
+          "github",
+          "github-oauth",
+          "ghprb",
+          "ansicolor"
+        ]
+      }
+    }
+  },
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

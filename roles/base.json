@@ -1,0 +1,56 @@
+{
+  "name": "base",
+  "description": "Setup common deployment base",
+  "run_list": [
+    "recipe[ohai]",
+    "recipe[locale]",
+    "recipe[timezone-ii]",
+    "recipe[hostname]",
+    "recipe[build-essential]",
+    "recipe[git]",
+    "recipe[base]",
+    "role[sshd]",
+    "recipe[sudo]",
+    "recipe[rvm::system]",
+    "recipe[monit]"
+  ],
+  "default_attributes": {
+    "tz": "UTC",
+    "packages": [
+        "htop",
+        "atop",
+        "screen",
+        "imagemagick",
+        "vim"
+    ],
+    "authorization": {
+      "sudo": {
+        "sudoers_defaults": [
+        ],
+        "groups": [
+            "wheel",
+            "admin"
+        ],
+        "users":  [
+            "deploy"
+        ],
+        "agent_forwarding":   true,
+        "include_sudoers_d":  true
+      }
+    },
+    "monit": {
+      "poll_period": 30,
+      "poll_start_delay": false
+    },
+    "build_essential": { "compiletime": true }
+  },
+  "override_attributes": {
+    "deployment": {
+      "user":   "deploy",
+      "group":  "deploy",
+      "home":   "/home/deploy"
+    }
+  },
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

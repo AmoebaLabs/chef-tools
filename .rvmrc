@@ -1,0 +1,39 @@
+rvm use 2.0.0-p195
+bundle | grep -v Using
+
+if [[ -f $BASH_SOURCE ]]; then
+  rvm rvmrc warning ignore $BASH_SOURCE
+fi
+
+export PATH="`pwd`:$PATH"
+function _amoeba_complete() {
+    local cur prev
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    function complete_from_list() {
+        COMPREPLY=($(compgen -W "${1}" -- ${cur}))
+    }
+
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        local opts=$(amoeba help 2>&1 | tail -n+2)
+        complete_from_list "${opts[*]}"
+        return 0
+    fi
+
+    local -a complist=($(
+      if [[ $COMP_CWORD -eq 2 ]]; then
+        amoeba "${COMP_WORDS[1]}" help 2>&1 | tail -n+2
+      else
+        for n in `ls nodes/*.json 2>/dev/null`; do
+          echo $n | sed 's/^[^\/]*\///;s/\.json$//'
+        done
+      fi
+    ))
+
+    complete_from_list "${complist[*]}"
+
+    return 0
+}
+complete -F _amoeba_complete amoeba

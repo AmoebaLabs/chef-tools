@@ -1,0 +1,40 @@
+#!/usr/bin/env perl
+use v5.12;
+use strict;
+use warnings;
+use autodie;
+use File::Temp qw(tempfile);
+use Amoeba;
+
+Dispatch::GitLike->new( commands => {
+
+    exec    => sub {
+        my $node = require_node;
+        `./amoeba node pull $$node{name}`;
+        my $remote_node = read_bag(nodes => $$node{name});
+        my $app_user = $$remote_node{application}{user}{name};
+        my $host = $$remote_node{deployment}{host};
+        my $cmd = join(' ', @ARGV);
+        system join ' ', ssh => "$app_user\@$host", "'$cmd'";
+    },
+    shell   => sub { shift->run(exec => shift(@ARGV)) },
+    pubkey  => sub { shift->run(exec => shift(@ARGV), 'cat .ssh/id_rsa.pub') },
+
+    cap     => sub {
+        my $node = require_node;
+        knife_solo_json $node, { %$node,
+            run_list => [
+                'recipe[capistrano]',
+                'recipe[app::capistrano]'
+            ]
+        }, cook => qw();
+        my $capfile = `./amoeba node capfile $$node{name}`
+            or die "Unable to fetch node Capfile";
+        my ($fh, $filename) = tempfile();
+        print $fh $capfile;
+        system cap => ( -f => $filename ), @ARGV
+    },
+    capfile => sub { shift->run(exec => shift(@ARGV), 'cat shared/config/Capfile') },
+    deploy  => sub { shift->run(cap => shift(@ARGV), 'deploy') },
+
+})->run(@ARGV)

@@ -1,0 +1,49 @@
+{
+  "name": "localhost",
+  
+  "tz": "America/Los_Angeles",
+
+  "run_list": [
+    "role[base]",
+    "role[psql_server]",
+    "role[app-rails]",
+    "role[app-redis]"
+  ],
+
+  "deployment": {
+    "provider": "digital_ocean",
+    "host": "192.241.1.1"
+  },
+
+  "application": {
+    "name": "myapp",
+
+    "database": {
+      "type":   "postgresql"
+    },
+
+    "url": "myapp.com",
+    "alias_urls": ["my.st", "www.my.st"],
+    "redirect_urls": ["www.myapp.com"],
+
+    "env_vars": {
+      "AWS_ACCESS_KEY": "<insert>",
+      "AWS_ACCESS_SECRET": "<insert>",
+      "AWS_BUCKET": "myapp",
+    },
+
+    "environment": "production",
+    "repository": "git@github.com:me/myapp.git",
+    "ruby_version": "2.0.0-p195",
+
+    "crontab": [
+        {
+            "name": "myapp-job",
+            "command": "rake do:something",
+            "minute": "0,30",
+            "hour": "*",
+            "day": "*"
+        }
+    ]
+  }
+}

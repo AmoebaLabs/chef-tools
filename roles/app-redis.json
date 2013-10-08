@@ -1,0 +1,10 @@
+{
+  "name": "app-redis",
+  "description": "Redis app connection",
+  "run_list": [
+    "role[redis_server]",
+    "recipe[app::redis]"
+  ],
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

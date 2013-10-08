@@ -1,0 +1,5 @@
+Host slatercenter-production
+    User      vagrant
+    Port      2222
+    HostName  127.0.0.1
+    IdentityFile vagrant_rsa

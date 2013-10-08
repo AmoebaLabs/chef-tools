@@ -1,0 +1,29 @@
+{
+  "name": "sshd",
+  "description": "configure ssh server",
+  "run_list": [
+    "recipe[openssh]"
+  ],
+  "default_attributes": {
+    "openssh": {
+      "client": {
+        "hash_known_hosts": "yes",
+        "strict_host_key_checking": "no"
+      },
+      "server": {
+        "protocol": 2,
+        "permit_root_login": "no",
+        "challenge_response_authentication": "no",
+        "password_authentication": "no",
+        "use_privilege_separation": "sandbox",
+        "ignore_rhosts": "yes",
+        "x11_forwarding": "no",
+        "print_motd": "no",
+        "use_dns": "no",
+        "subsystem": "sftp /usr/lib/openssh/sftp-server"
+      }
+    }
+  },
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

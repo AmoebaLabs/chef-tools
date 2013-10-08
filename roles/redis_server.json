@@ -1,0 +1,17 @@
+{
+  "name": "redis_server",
+  "description": "Redis server",
+  "run_list": [
+    "recipe[redisio::install]",
+    "recipe[redisio::enable]"
+  ],
+  "default_attributes": {
+    "redisio": {
+      "servers": [],
+      "version": "2.6.16",
+      "mirror": "http://download.redis.io/releases"
+    }
+  },
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "app",
+  "description": "Web application",
+  "run_list": [
+    "recipe[nginx]",
+    "recipe[app]"
+  ],
+  "default_attributes": {
+    "nginx": {
+      "user": "nobody",
+      "group": "nogroup"
+    }
+  },
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+#^syntax detection
+
+site 'http://community.opscode.com/api/v1'
+
+cookbook 'apt'
+cookbook 'sudo'
+cookbook 'build-essential'
+cookbook 'git'
+cookbook 'ohai'
+cookbook 'capistrano'
+cookbook 'nodejs'
+cookbook 'postgresql'
+cookbook 'nginx'
+cookbook 'chef_gem'
+cookbook 'openssh'
+cookbook 'swap'
+cookbook 'hostname'
+cookbook 'timezone-ii'
+cookbook 'redisio'
+cookbook 'locale',  github: 'fnordfish/chef-locale'
+cookbook 'rvm',     github: 'fnichol/chef-rvm'
+cookbook 'jenkins', github: 'AmoebaConsulting/chef-jenkins'
+cookbook 'monit',   github: 'AmoebaConsulting/chef-monit'
+cookbook 'unicorn', github: 'AmoebaConsulting/chef-unicorn'

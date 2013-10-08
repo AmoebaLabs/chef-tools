@@ -1,0 +1,4 @@
+check process jenkins
+  with pidfile /etc/sv/jenkins/supervise/pid
+    start program = "<%= @start_command %>" with timeout 60 seconds
+    stop  program = "<%= @stop_command %>"

@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+use v5.12;
+use strict;
+use warnings;
+use autodie;
+use JSON qw(encode_json decode_json);
+use Amoeba;
+
+Dispatch::GitLike->new( commands => {
+    bootstrap   => sub { my $self = shift;
+        my $node = require_node;
+        $self->run('refresh_keys');
+        knife_solo $node, prepare => qw(
+            --bootstrap-version 11.4.2
+        );
+        knife_solo_json $node, {
+            run_list => [ 'role[base]' ]
+        }, cook => qw() or die "node bootstrap failed!\n";
+        if ($self->run(pull => $$node{name})) {
+            warn "Node bootstrapped successfully, you can now push to the node:\n",
+                 "\tamoeba node push $$node{name}\n";
+        }
+    },
+    setup_deployer => sub { ensure_deployer require_node },
+    push        => sub { my $self = shift;
+        my $node = require_node;
+        ensure_deployer($node);
+        $self->run('refresh_keys');
+        knife_solo $node, cook => qw();
+        $self->run(pull => $$node{name});
+    },
+    pull        => sub {
+        my $node = require_node;
+        ensure_deployer($node);
+        my $raw_json = `./amoeba node sudo $$node{name} 'cat ~deploy/node.json'`
+                or die "Unable to pull node.\n";
+        write_bag nodes => $$node{name}, decode_json $raw_json;
+    },
+    clean       => sub {
+        my $node = require_node;
+        ensure_deployer($node);
+        system rm => "data_bags/nodes/$$node{name}.json";
+    },
+    refresh_keys => sub {
+        require_kitchen;
+        for (glob "authorized_keys/*") {
+            if (m|/([^/]+)$|) {
+                write_bag authorized_keys => $1, {
+                    keys => [ (-d) ? map { read_file } glob "$_/*" : read_file ]
+                };
+            }
+        }
+        for (glob "certs/*") {
+            if (m|/([^/]+)\.(crt\|key\|ca)$|) {
+                my $existing_json = read_bag certs => $1 // {};
+                $$existing_json{$2} = read_file;
+                write_bag certs => $1, $existing_json
+            }
+        }
+    },
+    list    => sub {
+        for (glob "nodes/*.json") {
+            m|/(.*?)\.json$| and print "$1\n"
+        }
+    },
+
+    exec    => sub { ssh_node require_node, join(' ', @ARGV) },
+    sudo    => sub { shift->run(exec => shift(@ARGV), sudo => @ARGV) },
+    shell   => sub { ssh_node require_node },
+
+    status  => sub { shift->run(sudo => shift(@ARGV), monit => 'status') },
+
+})->run(@ARGV)

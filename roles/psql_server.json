@@ -1,0 +1,14 @@
+{
+  "name"        : "psql_server",
+  "description" : "PostgreSQL database server",
+  "run_list"    : [ "recipe[postgresql::server]" ],
+  "default_attributes": {
+    "postgresql": {
+      "password": {
+        "postgres": false
+      }
+    }
+  },
+  "chef_type"   : "role",
+  "json_class"  : "Chef::Role"
+}

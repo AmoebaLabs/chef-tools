@@ -1,0 +1,27 @@
+{
+  "name": "app-rails",
+  "description": "Ruby on Rails application",
+  "run_list": [
+    "recipe[unicorn]",
+    "recipe[capistrano]",
+    "recipe[nodejs]",
+    "role[app]",
+    "recipe[rvm::user]"
+  ],
+  "default_attributes": {
+    "application": {
+      "gems": [
+        "bundler",
+        "rake",
+        "unicorn-rails",
+        "foreman"
+      ]
+    },
+    "packages": [
+      "qt4-qmake",
+      "libqt4-dev"
+    ]
+  },
+  "chef_type": "role",
+  "json_class": "Chef::Role"
+}

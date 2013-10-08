@@ -1,0 +1,68 @@
+default_run_options[:shell] = '/bin/bash --login'
+
+load 'deploy'
+deploy_rb = File.join(File.dirname(__FILE__), 'config/deploy.rb')
+load deploy_rb if File.exists?(deploy_rb)
+
+set :application,   "<%= app.name %>"
+set :rails_env,     "<%= app.environment %>"
+set :config_path,   "<%= app.config_path %>"
+
+set :user,          "<%= app.user.name %>"
+set :deploy_to,     "<%= app.user.home %>"
+set :use_sudo,      false
+
+set :scm,           :git
+set :git_enable_submodules, 1
+set :repository,    "<%= app.repo %>"
+set :branch,        "<%= app.branch %>"
+set :deploy_via,    :remote_cache
+set :keep_releases, 5
+set :copy_exclude,  ['.git']
+
+set :ssh_options, {
+  :forward_agent => true
+}
+
+server "<%= app.user.name %>@<%= node.deployment.host %>", :app, :web
+# db migrate server, for now using the same node
+# TODO: conditional handling based on whether db host is remote or local
+server "<%= app.user.name %>@<%= node.deployment.host %>", :db, :primary => true
+
+after   'deploy:update_code',  'deploy:symlink_configs'
+after   'deploy:update_code',  'deploy:bower_install'
+before  'deploy:restart',      'deploy:setup'
+before  'deploy:restart',      'deploy:migrate'
+after   'deploy',              'deploy:cleanup'
+
+namespace :deploy do
+  desc 'Link the shared/config files into the current/config dir.'
+  task :symlink_configs, :roles => :app do
+    run [ "cd #{latest_release}",
+      {
+        "database.yml"  => "config/",
+        "unicorn.rb"    => "config/",
+        "Procfile"      => "",
+        "env.site"      => ".env",
+      }.map { |k, v| "ln -nfs #{config_path}/#{k} #{v}" }
+    ].flatten.join(' && ')
+  end
+
+  task :bower_install, :roles => :app do
+    run "cd #{latest_release} && bower install"
+  end
+
+  init_script = "<%= app.init_script %>"
+  desc "Restart unicorn via no-downtime 'upgrade' command"
+  task :restart, :roles => :app, :except => { :no_release => true } do
+    run "#{init_script} upgrade"
+  end
+
+  desc "Gracefully kill the unicorn process"
+  task :stop, :roles => :app, :except => { :no_release => true } do
+    run "#{init_script} stop"
+  end
+end
+
+load 'deploy/assets'
+require 'bundler/capistrano'
